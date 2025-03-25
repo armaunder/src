@@ -16,6 +16,25 @@ void bumperCB(const geometry_msgs::Twist msg){
     //Fill with code
 }
 
+void scared(){
+	sc.playWave(path_to_sounds+"r2scream.wav");
+	sleep(2.0);
+	sc.stopWave(path_to_sounds+"r2scream.wav");
+	vel.linear.x = -2;
+	vel.angular.z = 1;
+	vel_pub.publish(vel);
+
+}
+
+void happy(){
+	sc.playWave(path_to_sounds+"r2scream.wav"); //change sound
+	sleep(2.0);
+	vel.linear.x = 2;
+	vel_pub.publish(vel);
+	sleep(2.0);
+	vel.linear.x = 0;
+	vel_pub.publish(vel); 
+}
 //-------------------------------------------------------------
 
 int main(int argc, char **argv)
@@ -46,13 +65,13 @@ int main(int argc, char **argv)
 	int world_state = 0;
 
 	double angular = 0.2;
-	double linear = 0.0;
+	double linear = 0.25;
 
 	geometry_msgs::Twist vel;
 	vel.angular.z = angular;
 	vel.linear.x = linear;
 
-	sc.playWave(path_to_sounds + "r2scream.wav");
+	sc.playWave(path_to_sounds + "sound.wav");
 	ros::Duration(0.5).sleep();
 
 	while(ros::ok() && secondsElapsed <= 480){		
