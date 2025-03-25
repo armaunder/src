@@ -52,7 +52,7 @@ int main(int argc, char **argv)
 	vel.angular.z = angular;
 	vel.linear.x = linear;
 
-	sc.playWave(path_to_sounds + "sound.wav");
+	sc.playWave(path_to_sounds + "r2scream.wav");
 	ros::Duration(0.5).sleep();
 
 	while(ros::ok() && secondsElapsed <= 480){		
