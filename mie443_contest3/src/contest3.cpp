@@ -16,6 +16,7 @@ void bumperCB(const geometry_msgs::Twist msg){
     //Fill with code
 }
 
+// human gets too close, runs away
 void scared(){
 	sc.playWave(path_to_sounds+"r2scream.wav");
 	sleep(2.0);
@@ -26,6 +27,7 @@ void scared(){
 
 }
 
+// gets picked up, wheels spin fast while it is in the air
 void happy(){
 	sc.playWave(path_to_sounds+"r2scream.wav"); //change sound
 	sleep(2.0);
@@ -35,6 +37,30 @@ void happy(){
 	vel.linear.x = 0;
 	vel_pub.publish(vel); 
 }
+
+// sound of shock
+void surprised(){
+	sc.playWave(path_to_sounds+"r2scream.wav"); //change sound
+	sleep(2.0); 
+}
+
+// hits bumper back up and start spinning
+void anger(){
+	sc.playWave(path_to_sounds+"r2scream.wav"); //change sound
+	sleep(2.0);
+	vel.angular.z = 1;
+	vel_pub.publish(vel);
+	sleep(2.0);
+	vel.angular.x = 0;
+	vel_pub.publish(vel); 
+}
+
+// loses human, starts meandering
+void sad(){
+	
+}
+
+
 //-------------------------------------------------------------
 
 int main(int argc, char **argv)
