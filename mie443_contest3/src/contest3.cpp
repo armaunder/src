@@ -35,6 +35,17 @@ void happy(){
 	vel.linear.x = 0;
 	vel_pub.publish(vel); 
 }
+
+//
+void scared(){
+	// play sound that indicates fear, then move backwards and turn around very fast
+	sc.playWave(path_to_sounds+"r2scream.wav");
+	sleep(2.0);
+	sc.stopWave(path_to_sounds+"r2scream.wav");
+	vel.linear.x = -2;
+	vel.angular.z = 1;
+	vel_pub.publish(vel);
+}
 //-------------------------------------------------------------
 
 int main(int argc, char **argv)
