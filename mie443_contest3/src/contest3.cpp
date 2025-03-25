@@ -2,19 +2,29 @@
 #include <ros/package.h>
 #include <imageTransporter.hpp>
 #include <chrono>
+#include <kobuki_msgs/BumperEvent.h>
+
 
 using namespace std;
 
 geometry_msgs::Twist follow_cmd;
+
+uint8_t bumper[3] = {kobuki_msgs::BumperEvent::RELEASED, kobuki_msgs::BumperEvent::RELEASED, kobuki_msgs::BumperEvent::RELEASED};
+uint8_t leftstate = bumper[kobuki_msgs::BumperEvent::LEFT];
+uint8_t frontstate = bumper [kobuki_msgs::BumperEvent::CENTER];
+uint8_t rightstate = bumper [kobuki_msgs::BumperEvent::RIGHT];
+
 int world_state;
 
 void followerCB(const geometry_msgs::Twist msg){
     follow_cmd = msg;
 }
 
-void bumperCB(const geometry_msgs::Twist msg){
-    //Fill with code
+void bumperCallback(const kobuki_msgs::BumperEvent::ConstPtr& msg)
+{
+    bumper[msg->bumper] = msg->state;
 }
+
 
 void scared(){
 	sc.playWave(path_to_sounds+"r2scream.wav");
@@ -87,7 +97,13 @@ int main(int argc, char **argv)
 
 	while(ros::ok() && secondsElapsed <= 480){		
 		ros::spinOnce();
-
+		bool any_bumper_pressed=false;
+       	for (uint32_t b_idx = 0; b_idx < N_BUMPER; ++b_idx) {
+        	any_bumper_pressed |= (bumper[b_idx] == kobuki_msgs::BumperEvent::PRESSED);
+        }
+		else if(!any_bumper_pressed) {
+            scared();
+        }
 		if(world_state == 0){
 			//fill with your code
 			//vel_pub.publish(vel);
