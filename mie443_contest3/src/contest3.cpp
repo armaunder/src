@@ -87,8 +87,8 @@ int main(int argc, char **argv) {
         ros::spinOnce();
         bool any_bumper_pressed = false;
 
-        // ✅ Ensure N_BUMPER is defined
-        for (uint32_t b_idx = 0; b_idx < 3; ++b_idx) { // Assuming 3 bumpers
+        // ✅ Ensure the correct use of `BumperEvent::PRESSED`
+        for (uint32_t b_idx = 0; b_idx < 3; ++b_idx) { 
             any_bumper_pressed |= (bumper[b_idx] == kobuki_msgs::BumperEvent::PRESSED);
         }
 
