@@ -115,7 +115,7 @@ int main(int argc, char **argv) {
 
     // Subscribers
     ros::Subscriber follower = nh.subscribe("follower_velocity_smoother/smooth_cmd_vel", 10, &followerCB);
-    ros::Subscriber bumper_sub = nh.subscribe("mobile_base/events/bumper", 10, &bumperCallback);
+    ros::Subscriber bumper_sub = nh.subscribe("mobile_base/events/bumper", 10, &bumperCB);
 
     // Contest count down timer
     ros::Rate loop_rate(10);
