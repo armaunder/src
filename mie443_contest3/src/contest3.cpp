@@ -106,6 +106,7 @@ void sad(){
 //-------------------------------------------------------------
 int main(int argc, char **argv) {
     ros::init(argc, argv, "image_listener");
+    ros::Duration(1.0).sleep(); // Added delay for ROS initialization
     ros::NodeHandle nh;
 
     // ✅ Initialize global variables
