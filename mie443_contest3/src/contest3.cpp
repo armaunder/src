@@ -113,10 +113,13 @@ int main(int argc, char **argv) {
 			vel_pub.publish(follow_cmd);
 
 		}else if(world_state == 1){
-			anger();
+			sc.playWave(path_to_sounds+"r2scream.wav");
+			scared();
+			ros::Duration(2.0).sleep();
+			sc.stopWave(path_to_sounds+"r2scream.wav");
 		}
 		else if(world_state == 2){
-			scared();
+			anger();
 		}
 		else if(world_state == 3){
 			happy();
