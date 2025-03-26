@@ -136,32 +136,39 @@ int main(int argc, char **argv) {
     sc.playWave(path_to_sounds + "sound.wav");
     ros::Duration(0.5).sleep();
 
-    while (ros::ok() && secondsElapsed <= 480) {
-        ros::spinOnce();
-        bool any_bumper_pressed = false;
+    while(ros::ok() && secondsElapsed <= 480){		
+		ros::spinOnce();
+		bumperCB();
+		// humanCB();	
+		// pickedUpCB();
+		// foundCB();
+		// lostCB();
+		// followerCB();
 
-        // ✅ Ensure the correct use of `BumperEvent::PRESSED`
-        for (uint32_t b_idx = 0; b_idx < 3; ++b_idx) { 
-            any_bumper_pressed |= (bumper[b_idx] == kobuki_msgs::BumperEvent::PRESSED);
-        }
 
-        if (!any_bumper_pressed) { // ✅ Fixed incorrect `else if`
-            scared();
-        }
+		if(world_state == 0){
+			//fill with your code
+			//vel_pub.publish(vel);
+			vel_pub.publish(follow_cmd);
 
-        if (world_state == 0) {
-            vel_pub.publish(follow_cmd);
-        } else if (world_state == 1) {
-            /*
-            ...
-            */
-        }
+		}else if(world_state == 1){
+			anger();
+		}
+		else if(world_state == 2){
+			scared();
+		}
+		else if(world_state == 3){
+			happy();
+		}
+		else if(world_state == 4){
+			surprised();
+		}
+		else if(world_state == 5){
+			sad();
+		secondsElapsed = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now()-start).count();
+		loop_rate.sleep();
+		}
+	}
 
-        secondsElapsed = std::chrono::duration_cast<std::chrono::seconds>(
-            std::chrono::system_clock::now() - start
-        ).count();
-        loop_rate.sleep();
-    }
-
-    return 0;
+	return 0;
 }
