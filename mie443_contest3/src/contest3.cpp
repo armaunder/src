@@ -24,11 +24,11 @@ void followerCB(const geometry_msgs::Twist msg) {
     follow_cmd = msg;
 }
 
-void bumperCB(const geometry_msgs::Twist msg){
+void bumperCB(const kobuki_msgs::BumperEvent::ConstPtr& msg) {
     bumper[msg->bumper] = msg->state;
-	if(bumper[0] == 1 || bumper[1] == 1 || bumper[2] == 1){
-		world_state = 1;
-	}
+    if (bumper[0] == 1 || bumper[1] == 1 || bumper[2] == 1) {
+        world_state = 1;
+    }
 }
 
 //-------------------------------------------------------------
@@ -138,7 +138,7 @@ int main(int argc, char **argv) {
 
     while(ros::ok() && secondsElapsed <= 480){		
 		ros::spinOnce();
-		bumperCB();
+		// bumperCB();	
 		// humanCB();	
 		// pickedUpCB();
 		// foundCB();
@@ -165,9 +165,9 @@ int main(int argc, char **argv) {
 		}
 		else if(world_state == 5){
 			sad();
+		}
 		secondsElapsed = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now()-start).count();
 		loop_rate.sleep();
-		}
 	}
 
 	return 0;
