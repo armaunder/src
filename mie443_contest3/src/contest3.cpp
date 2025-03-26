@@ -41,11 +41,8 @@ void scared(){
 
 // gets picked up, wheels spin fast while it is in the air
 void happy(){
-	// sc.playWave(path_to_sounds+"r2scream.wav"); //change sound
-	// sleep(2.0);
 	vel.linear.x = 2;
 	vel_pub.publish(vel);
-	sleep(2.0);
 	vel.linear.x = 0;
 	vel_pub.publish(vel); 
 }
@@ -75,7 +72,6 @@ void sad(){
 	vel.linear.x = 0.5;
 	vel.angular.z = 0.5;
 	vel_pub.publish(vel);
-	ros::Duration(1.0).sleep();
 }
 
 //-------------------------------------------------------------
@@ -85,6 +81,7 @@ int main(int argc, char **argv) {
 
     // ✅ Initialize global variables
     path_to_sounds = ros::package::getPath("mie443_contest3") + "/sounds/";
+    sc = sound_play::SoundClient(); // Initialize sound client after NodeHandle
     vel_pub = nh.advertise<geometry_msgs::Twist>("cmd_vel_mux/input/teleop", 1);
 
     // Subscribers
@@ -112,17 +109,8 @@ int main(int argc, char **argv) {
 
     while(ros::ok() && secondsElapsed <= 480){		
 		ros::spinOnce();
-		// bumperCB();	
-		// humanCB();	
-		// pickedUpCB();
-		// foundCB();
-		// lostCB();
-		// followerCB();
-
 
 		if(world_state == 0){
-			//fill with your code
-			//vel_pub.publish(vel);
 			vel_pub.publish(follow_cmd);
 
 		}else if(world_state == 1){
