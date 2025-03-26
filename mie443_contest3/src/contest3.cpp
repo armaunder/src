@@ -63,7 +63,7 @@ void scared(){
 
 // gets picked up, wheels spin fast while it is in the air
 void happy(){
-	//sc.playWave(path_to_sounds+"r2scream.wav"); //change sound
+	// sc.playWave(path_to_sounds+"r2scream.wav"); //change sound
 	// sleep(2.0);
 	vel.linear.x = 2;
 	vel_pub.publish(vel);
@@ -140,8 +140,16 @@ int main(int argc, char **argv)
 	sc.playWave(path_to_sounds + "sound.wav");
 	ros::Duration(0.5).sleep();
 
+
 	while(ros::ok() && secondsElapsed <= 480){		
 		ros::spinOnce();
+		bumperCB();
+		// humanCB();	
+		// pickedUpCB();
+		// foundCB();
+		// lostCB();
+		// followerCB();
+
 
 		if(world_state == 0){
 			//fill with your code
