@@ -9,7 +9,6 @@ using namespace std;
 // Global variables
 geometry_msgs::Twist follow_cmd;
 geometry_msgs::Twist vel; // ✅ Ensure vel is global
-sound_play::SoundClient sc; // ✅ Make sc global
 string path_to_sounds; // ✅ Make sound path global
 ros::Publisher vel_pub; // ✅ Make publisher global
 
@@ -81,7 +80,7 @@ int main(int argc, char **argv) {
 
     // ✅ Initialize global variables
     path_to_sounds = ros::package::getPath("mie443_contest3") + "/sounds/";
-    sc = sound_play::SoundClient(); // Initialize sound client after NodeHandle
+    sound_play::SoundClient sc; // Initialize sound client after NodeHandle
     vel_pub = nh.advertise<geometry_msgs::Twist>("cmd_vel_mux/input/teleop", 1);
 
     // Subscribers
