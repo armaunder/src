@@ -56,13 +56,12 @@ void bumperCB(const kobuki_msgs::BumperEvent::ConstPtr& msg) {
 
 // human gets too close, runs away
 void scared(){
-	// sc.playWave(path_to_sounds+"r2scream.wav");
-	// sleep(2.0);
-	// sc.stopWave(path_to_sounds+"r2scream.wav");
+	sc.playWave(path_to_sounds+"r2scream.wav");
 	vel.linear.x = -2;
 	vel.angular.z = 1;
 	vel_pub.publish(vel);
-
+    sleep(2.0);
+	sc.stopWave(path_to_sounds+"r2scream.wav");
 }
 
 // gets picked up, wheels spin fast while it is in the air
