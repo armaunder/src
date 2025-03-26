@@ -9,9 +9,6 @@ using namespace std;
 // Global variables
 geometry_msgs::Twist follow_cmd;
 geometry_msgs::Twist vel; // ✅ Ensure vel is global
-sound_play::SoundClient sc; // ✅ Make sc global
-string path_to_sounds; // ✅ Make sound path global
-ros::Publisher vel_pub; // ✅ Make publisher global
 
 uint8_t bumper[3] = {kobuki_msgs::BumperEvent::RELEASED, kobuki_msgs::BumperEvent::RELEASED, kobuki_msgs::BumperEvent::RELEASED};
 uint8_t leftstate = bumper[kobuki_msgs::BumperEvent::LEFT];
@@ -19,6 +16,9 @@ uint8_t frontstate = bumper[kobuki_msgs::BumperEvent::CENTER];
 uint8_t rightstate = bumper[kobuki_msgs::BumperEvent::RIGHT];
 
 int world_state;
+string path_to_sounds; // ✅ Make sound path global
+ros::Publisher vel_pub; // ✅ Make publisher global
+sound_play::SoundClient sc; // ✅ Make sc global
 
 void followerCB(const geometry_msgs::Twist msg) {
     follow_cmd = msg;
@@ -31,35 +31,11 @@ void bumperCB(const kobuki_msgs::BumperEvent::ConstPtr& msg) {
     }
 }
 
-//-------------------------------------------------------------
-// ✅ Fixed `scared()` function to use global `vel` and `sc`
-// void scared() {
-//     sc.playWave(path_to_sounds + "r2scream.wav");
-//     sleep(2.0);
-//     sc.stopWave(path_to_sounds + "r2scream.wav");
-
-//     vel.linear.x = -2;
-//     vel.angular.z = 1;
-//     vel_pub.publish(vel);
-// }
-
-// // ✅ Happy function (unchanged)
-// void happy() {
-//     sc.playWave(path_to_sounds + "r2scream.wav"); // Change sound
-//     sleep(2.0);
-//     vel.linear.x = 2;
-//     vel_pub.publish(vel);
-//     sleep(2.0);
-//     vel.linear.x = 0;
-//     vel_pub.publish(vel);
-// }
-
 // human gets too close, runs away
 void scared(){
 	vel.linear.x = -2;
 	vel.angular.z = 1;
 	vel_pub.publish(vel);
-
 }
 
 // gets picked up, wheels spin fast while it is in the air
@@ -109,6 +85,7 @@ int main(int argc, char **argv) {
     // ✅ Initialize global variables
     path_to_sounds = ros::package::getPath("mie443_contest3") + "/sounds/";
     vel_pub = nh.advertise<geometry_msgs::Twist>("cmd_vel_mux/input/teleop", 1);
+    sc = sound_play::SoundClient(); // Initialize sc
 
     // Subscribers
     ros::Subscriber follower = nh.subscribe("follower_velocity_smoother/smooth_cmd_vel", 10, &followerCB);
@@ -141,7 +118,6 @@ int main(int argc, char **argv) {
 		// foundCB();
 		// lostCB();
 		// followerCB();
-
 
 		if(world_state == 0){
 			//fill with your code
