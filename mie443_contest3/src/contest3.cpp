@@ -12,15 +12,49 @@ void followerCB(const geometry_msgs::Twist msg){
     follow_cmd = msg;
 }
 
+// if bumper hit
 void bumperCB(const geometry_msgs::Twist msg){
-    //Fill with code
+    bumper[msg->bumper] = msg->state;
+	if(bumper[0] == 1 || bumper[1] == 1 || bumper[2] == 1){
+		world_state = 1;
+	}
 }
+
+// // if human gets too close
+// void humanCB(const geometry_msgs::Twist msg){
+// 	if(msg->linear.x < 0.5){
+// 		world_state = 2;
+// 	}
+// }
+
+// // if robot gets picked up
+// void pickedUpCB(const geometry_msgs::Twist msg){
+// 	if(msg->linear.z > 0.5){
+// 		world_state = 3;
+// 	}
+// }
+
+// // if human is found
+// void foundCB(const geometry_msgs::Twist msg){
+// 	if(msg->linear.x > 0.5){
+// 		world_state = 4;
+// 	}
+// }
+
+// // if human is lost
+// void lostCB(const geometry_msgs::Twist msg){
+// 	if(msg->linear.x > 0.5){
+// 		world_state = 5;
+// 	}
+// }
+
+
 
 // human gets too close, runs away
 void scared(){
-	sc.playWave(path_to_sounds+"r2scream.wav");
-	sleep(2.0);
-	sc.stopWave(path_to_sounds+"r2scream.wav");
+	// sc.playWave(path_to_sounds+"r2scream.wav");
+	// sleep(2.0);
+	// sc.stopWave(path_to_sounds+"r2scream.wav");
 	vel.linear.x = -2;
 	vel.angular.z = 1;
 	vel_pub.publish(vel);
@@ -29,8 +63,8 @@ void scared(){
 
 // gets picked up, wheels spin fast while it is in the air
 void happy(){
-	sc.playWave(path_to_sounds+"r2scream.wav"); //change sound
-	sleep(2.0);
+	//sc.playWave(path_to_sounds+"r2scream.wav"); //change sound
+	// sleep(2.0);
 	vel.linear.x = 2;
 	vel_pub.publish(vel);
 	sleep(2.0);
@@ -40,14 +74,17 @@ void happy(){
 
 // finds human, sound of shock
 void surprised(){
-	sc.playWave(path_to_sounds+"r2scream.wav"); //change sound
-	sleep(2.0); 
+	// sc.playWave(path_to_sounds+"r2scream.wav"); //change sound
+	// sleep(2.0); 
 }
 
 // hits bumper back up and start spinning
 void anger(){
-	sc.playWave(path_to_sounds+"r2scream.wav"); //change sound
-	sleep(2.0);
+	// sc.playWave(path_to_sounds+"r2scream.wav"); //change sound
+	//sleep(2.0);
+	vel.linear.x = -2;
+	vel_pub.publish(vel);
+	vel.linear.x = 0;
 	vel.angular.z = 1;
 	vel_pub.publish(vel);
 	sleep(2.0);
@@ -57,7 +94,10 @@ void anger(){
 
 // loses human, starts meandering
 void sad(){
-	
+	vel.linear.x = 0.5;
+	vel.angular.z = 0.5;
+	vel_pub.publish(vel);
+	ros::Duration(1.0).sleep();
 }
 
 
@@ -109,13 +149,22 @@ int main(int argc, char **argv)
 			vel_pub.publish(follow_cmd);
 
 		}else if(world_state == 1){
-			/*
-			...
-			...
-			*/
+			anger();
 		}
+		else if(world_state == 2){
+			scared();
+		}
+		else if(world_state == 3){
+			happy();
+		}
+		else if(world_state == 4){
+			surprised();
+		}
+		else if(world_state == 5){
+			sad();
 		secondsElapsed = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now()-start).count();
 		loop_rate.sleep();
+		}
 	}
 
 	return 0;
