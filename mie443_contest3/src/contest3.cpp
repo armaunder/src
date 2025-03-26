@@ -151,10 +151,10 @@ int main(int argc, char **argv) {
 			vel_pub.publish(follow_cmd);
 
 		}else if(world_state == 1){
-			anger();
+			scared();
 		}
 		else if(world_state == 2){
-			scared();
+			anger();
 		}
 		else if(world_state == 3){
 			happy();
