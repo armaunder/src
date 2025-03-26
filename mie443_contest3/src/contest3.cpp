@@ -56,12 +56,12 @@ void bumperCB(const kobuki_msgs::BumperEvent::ConstPtr& msg) {
 
 // human gets too close, runs away
 void scared(){
-	sc.playWave(path_to_sounds+"r2scream.wav");
+	// sc.playWave(path_to_sounds+"r2scream.wav");
 	vel.linear.x = -2;
 	vel.angular.z = 1;
 	vel_pub.publish(vel);
-    sleep(2.0);
-	sc.stopWave(path_to_sounds+"r2scream.wav");
+    // sleep(2.0);
+	// sc.stopWave(path_to_sounds+"r2scream.wav");
 }
 
 // gets picked up, wheels spin fast while it is in the air
@@ -100,7 +100,7 @@ void sad(){
 	vel.linear.x = 0.5;
 	vel.angular.z = 0.5;
 	vel_pub.publish(vel);
-	ros::Duration(1.0).sleep();
+	// ros::Duration(1.0).sleep();
 }
 
 //-------------------------------------------------------------
@@ -152,7 +152,10 @@ int main(int argc, char **argv) {
 			vel_pub.publish(follow_cmd);
 
 		}else if(world_state == 1){
+            sc.playWave(path_to_sounds + "r2scream.wav");
 			scared();
+            ros::Duration(2.0).sleep();
+            sc.stopWave(path_to_sounds + "r2scream.wav");
 		}
 		else if(world_state == 2){
 			anger();
