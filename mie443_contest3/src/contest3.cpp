@@ -18,61 +18,46 @@ void bumperCB(const geometry_msgs::Twist msg){
 
 // human gets too close, runs away
 void scared(){
-	//sc.playWave(path_to_sounds+"r2scream.wav");
-	//sleep(2.0);
-	//sc.stopWave(path_to_sounds+"r2scream.wav");
-	int i  = 0;
-	while(i<5){
-		vel.angular.z = -2;
-		vel.linear.x = 1;
-		vel_pub.publish(vel);
-		i++;
-	}
-	vel.linear.x = 0;
-	vel.angular.z = 0;
+	sc.playWave(path_to_sounds+"r2scream.wav");
+	sleep(2.0);
+	sc.stopWave(path_to_sounds+"r2scream.wav");
+	vel.linear.x = -2;
+	vel.angular.z = 1;
 	vel_pub.publish(vel);
 
 }
 
 // gets picked up, wheels spin fast while it is in the air
 void happy(){
-	//sc.playWave(path_to_sounds+"r2scream.wav"); //change sound
-	//sleep(2.0);
-	vel.linear.x = 3;
+	sc.playWave(path_to_sounds+"r2scream.wav"); //change sound
+	sleep(2.0);
+	vel.linear.x = 2;
 	vel_pub.publish(vel);
+	sleep(2.0);
 	vel.linear.x = 0;
 	vel_pub.publish(vel); 
 }
 
-// sound of shock
+// finds human, sound of shock
 void surprised(){
-	//sc.playWave(path_to_sounds+"r2scream.wav"); //change sound
-	//sleep(2.0); 
+	sc.playWave(path_to_sounds+"r2scream.wav"); //change sound
+	sleep(2.0); 
 }
 
-// hits bumper, back up and start spinning
+// hits bumper back up and start spinning
 void anger(){
-	//sc.playWave(path_to_sounds+"r2scream.wav"); //change sound
-	//sleep(2.0);
-	vel.angular.z = 0;
-	vel.linear.x = -1;
+	sc.playWave(path_to_sounds+"r2scream.wav"); //change sound
+	sleep(2.0);
+	vel.angular.z = 1;
 	vel_pub.publish(vel);
-	vel.linear.x = 0;
-	vel_pub.publish(vel);
-
-	int i  = 0;
-	while(i<5){
-		vel.angular.z = 2;
-		vel.linear.x = 0;
-		vel_pub.publish(vel);
-		i++;
-	}
+	sleep(2.0);
+	vel.angular.x = 0;
+	vel_pub.publish(vel); 
 }
 
 // loses human, starts meandering
 void sad(){
-	//sc.playWave(path_to_sounds+"r2scream.wav"); //change sound
-	//sleep(2.0);
+	
 }
 
 
@@ -117,7 +102,6 @@ int main(int argc, char **argv)
 
 	while(ros::ok() && secondsElapsed <= 480){		
 		ros::spinOnce();
-
 
 		if(world_state == 0){
 			//fill with your code
