@@ -80,7 +80,7 @@ int main(int argc, char **argv) {
     // ✅ Initialize global variables
     path_to_sounds = ros::package::getPath("mie443_contest3") + "/sounds/";
     vel_pub = nh.advertise<geometry_msgs::Twist>("cmd_vel_mux/input/teleop", 1);
-    sc = sound_play::SoundClient(nh);
+    sc = sound_play::SoundClient();
 
     // Subscribers
     ros::Subscriber follower = nh.subscribe("follower_velocity_smoother/smooth_cmd_vel", 10, &followerCB);
