@@ -30,25 +30,75 @@ void bumperCallback(const kobuki_msgs::BumperEvent::ConstPtr& msg) {
 
 //-------------------------------------------------------------
 // ✅ Fixed `scared()` function to use global `vel` and `sc`
-void scared() {
-    sc.playWave(path_to_sounds + "r2scream.wav");
-    sleep(2.0);
-    sc.stopWave(path_to_sounds + "r2scream.wav");
+// void scared() {
+//     sc.playWave(path_to_sounds + "r2scream.wav");
+//     sleep(2.0);
+//     sc.stopWave(path_to_sounds + "r2scream.wav");
 
-    vel.linear.x = -2;
-    vel.angular.z = 1;
-    vel_pub.publish(vel);
+//     vel.linear.x = -2;
+//     vel.angular.z = 1;
+//     vel_pub.publish(vel);
+// }
+
+// // ✅ Happy function (unchanged)
+// void happy() {
+//     sc.playWave(path_to_sounds + "r2scream.wav"); // Change sound
+//     sleep(2.0);
+//     vel.linear.x = 2;
+//     vel_pub.publish(vel);
+//     sleep(2.0);
+//     vel.linear.x = 0;
+//     vel_pub.publish(vel);
+// }
+
+// human gets too close, runs away
+void scared(){
+	// sc.playWave(path_to_sounds+"r2scream.wav");
+	// sleep(2.0);
+	// sc.stopWave(path_to_sounds+"r2scream.wav");
+	vel.linear.x = -2;
+	vel.angular.z = 1;
+	vel_pub.publish(vel);
+
 }
 
-// ✅ Happy function (unchanged)
-void happy() {
-    sc.playWave(path_to_sounds + "r2scream.wav"); // Change sound
-    sleep(2.0);
-    vel.linear.x = 2;
-    vel_pub.publish(vel);
-    sleep(2.0);
-    vel.linear.x = 0;
-    vel_pub.publish(vel);
+// gets picked up, wheels spin fast while it is in the air
+void happy(){
+	// sc.playWave(path_to_sounds+"r2scream.wav"); //change sound
+	// sleep(2.0);
+	vel.linear.x = 2;
+	vel_pub.publish(vel);
+	sleep(2.0);
+	vel.linear.x = 0;
+	vel_pub.publish(vel); 
+}
+
+// finds human, sound of shock
+void surprised(){
+	// sc.playWave(path_to_sounds+"r2scream.wav"); //change sound
+	// sleep(2.0); 
+}
+
+// hits bumper back up and start spinning
+void anger(){
+	// sc.playWave(path_to_sounds+"r2scream.wav"); //change sound
+	//sleep(2.0);
+	vel.linear.x = -2;
+	vel_pub.publish(vel);
+	vel.linear.x = 0;
+	vel.angular.z = 1;
+	vel_pub.publish(vel);
+	sleep(2.0);
+	vel.angular.x = 0;
+	vel_pub.publish(vel); 
+}
+
+// loses human, starts meandering
+void sad(){
+	vel.linear.x = 0.5;
+	vel.angular.z = 0.5;
+	vel_pub.publish(vel);
+	ros::Duration(1.0).sleep();
 }
 
 //-------------------------------------------------------------
