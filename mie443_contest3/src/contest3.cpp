@@ -24,8 +24,11 @@ void followerCB(const geometry_msgs::Twist msg) {
     follow_cmd = msg;
 }
 
-void bumperCallback(const kobuki_msgs::BumperEvent::ConstPtr& msg) {
+void bumperCB(const geometry_msgs::Twist msg){
     bumper[msg->bumper] = msg->state;
+	if(bumper[0] == 1 || bumper[1] == 1 || bumper[2] == 1){
+		world_state = 1;
+	}
 }
 
 //-------------------------------------------------------------
