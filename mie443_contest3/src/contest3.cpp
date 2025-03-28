@@ -17,9 +17,9 @@ string path_to_sounds; // ✅ Make sound path global
 ros::Publisher vel_pub; // ✅ Make publisher global
 
 uint8_t bumper[3] = {kobuki_msgs::BumperEvent::RELEASED, kobuki_msgs::BumperEvent::RELEASED, kobuki_msgs::BumperEvent::RELEASED};
-// uint8_t leftstate = bumper[kobuki_msgs::BumperEvent::LEFT];
-// uint8_t frontstate = bumper[kobuki_msgs::BumperEvent::CENTER];
-// uint8_t rightstate = bumper[kobuki_msgs::BumperEvent::RIGHT];
+uint8_t leftstate = bumper[kobuki_msgs::BumperEvent::LEFT];
+uint8_t frontstate = bumper[kobuki_msgs::BumperEvent::CENTER];
+uint8_t rightstate = bumper[kobuki_msgs::BumperEvent::RIGHT];
 
 int world_state;
 float posX = 0.0, posY = 0.0, posZ = 0.0;
@@ -30,13 +30,19 @@ void followerCB(const geometry_msgs::Twist msg) {
 
 void bumperCB(const kobuki_msgs::BumperEvent::ConstPtr& msg) {
     bumper[msg->bumper] = msg->state;
-	// uint8_t leftstate = bumper[kobuki_msgs::BumperEvent::LEFT];
-	// uint8_t frontstate = bumper[kobuki_msgs::BumperEvent::CENTER];
-	// uint8_t rightstate = bumper[kobuki_msgs::BumperEvent::RIGHT];
+	leftstate = bumper[kobuki_msgs::BumperEvent::LEFT];
+	frontstate = bumper[kobuki_msgs::BumperEvent::CENTER];
+	rightstate = bumper[kobuki_msgs::BumperEvent::RIGHT];
 
-    if (leftstate == kobuki_msgs::BumperEvent::PRESSED || frontstate == kobuki_msgs::BumperEvent::PRESSED || rightstate == kobuki_msgs::BumperEvent::PRESSED) {
-        world_state = 1;
-    }
+    // if (leftstate == kobuki_msgs::BumperEvent::PRESSED || frontstate == kobuki_msgs::BumperEvent::PRESSED || rightstate == kobuki_msgs::BumperEvent::PRESSED) {
+    //     world_state = 1;
+    // }
+	if (bumper[0] == 1 || bumper[1] == 1 || bumper[2] == 1) {
+		world_state = 1;
+	}
+	// if (leftstate == kobuki_msgs::BumperEvent::RELEASED && frontstate == kobuki_msgs::BumperEvent::RELEASED && rightstate == kobuki_msgs::BumperEvent::RELEASED) {
+	//     world_state = 0;
+	// }
 }
 // // odometry detects change in position
 // void odomCB(const kobuki_msgs::Odometry::ConstPtr& msg) {
@@ -146,6 +152,7 @@ int main(int argc, char **argv) {
 			ROS_INFO("Bumper hit");
 			ROS_INFO("Anger");
 			sc.stopWave(path_to_sounds+"r2scream.wav");
+			world_state == 0;
 		} // human gets too close, scared
 		else if(world_state == 2){
 			scared();
