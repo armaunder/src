@@ -3,6 +3,10 @@
 #include <imageTransporter.hpp>
 #include <chrono>
 #include <kobuki_msgs/BumperEvent.h>
+#include <kobuki_msgs/Odometry.h>
+#include <geometry_msgs/Twist.h>
+#include <sound_play/SoundClient.h>
+#include <sensor_msgs/Image.h>
 
 using namespace std;
 
@@ -26,11 +30,15 @@ void followerCB(const geometry_msgs::Twist msg) {
 
 void bumperCB(const kobuki_msgs::BumperEvent::ConstPtr& msg) {
     bumper[msg->bumper] = msg->state;
-    if (bumper[0] == 1 || bumper[1] == 1 || bumper[2] == 1) {
+	// uint8_t leftstate = bumper[kobuki_msgs::BumperEvent::LEFT];
+	// uint8_t frontstate = bumper[kobuki_msgs::BumperEvent::CENTER];
+	// uint8_t rightstate = bumper[kobuki_msgs::BumperEvent::RIGHT];
+
+    if (leftstate == kobuki_msgs::BumperEvent::PRESSED || frontstate == kobuki_msgs::BumperEvent::PRESSED || rightstate == kobuki_msgs::BumperEvent::PRESSED) {
         world_state = 1;
     }
 }
-// odometry detects change in z
+// odometry detects change in position
 void odomCB(const kobuki_msgs::Odometry::ConstPtr& msg) {
 	posX = msg->pose.pose.position.x;
 	posY = msg->pose.pose.position.y;
@@ -78,8 +86,8 @@ void anger(){
 	vel.linear.x = 0;
 	vel.angular.z = 1;
 	vel_pub.publish(vel);
-	sleep(2.0);
-	vel.angular.x = 0;
+	ros::Duration(2.0).sleep();
+	vel.angular.z = 0;
 	vel_pub.publish(vel); 
 }
 
