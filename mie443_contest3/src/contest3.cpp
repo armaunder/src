@@ -3,9 +3,9 @@
 #include <imageTransporter.hpp>
 #include <chrono>
 #include <kobuki_msgs/BumperEvent.h>
-#include <kobuki_msgs/Odometry.h>
+//#include <kobuki_msgs/Odometry.h>
 #include <geometry_msgs/Twist.h>
-#include <sound_play/SoundClient.h>
+#include <sound_play/SoundRequest.h>
 #include <sensor_msgs/Image.h>
 
 using namespace std;
@@ -17,9 +17,9 @@ string path_to_sounds; // ✅ Make sound path global
 ros::Publisher vel_pub; // ✅ Make publisher global
 
 uint8_t bumper[3] = {kobuki_msgs::BumperEvent::RELEASED, kobuki_msgs::BumperEvent::RELEASED, kobuki_msgs::BumperEvent::RELEASED};
-uint8_t leftstate = bumper[kobuki_msgs::BumperEvent::LEFT];
-uint8_t frontstate = bumper[kobuki_msgs::BumperEvent::CENTER];
-uint8_t rightstate = bumper[kobuki_msgs::BumperEvent::RIGHT];
+// uint8_t leftstate = bumper[kobuki_msgs::BumperEvent::LEFT];
+// uint8_t frontstate = bumper[kobuki_msgs::BumperEvent::CENTER];
+// uint8_t rightstate = bumper[kobuki_msgs::BumperEvent::RIGHT];
 
 int world_state;
 float posX = 0.0, posY = 0.0, posZ = 0.0;
@@ -38,22 +38,22 @@ void bumperCB(const kobuki_msgs::BumperEvent::ConstPtr& msg) {
         world_state = 1;
     }
 }
-// odometry detects change in position
-void odomCB(const kobuki_msgs::Odometry::ConstPtr& msg) {
-	posX = msg->pose.pose.position.x;
-	posY = msg->pose.pose.position.y;
-	posZ = msg->pose.pose.position.z;
-	if(posZ > 0.5){
-		world_state = 3;
-	} // if returned coordinates are less than -1, then the robot is too close to the human
-	else if (posX < -1 || posY < -1){
-		world_state = 2;
-	} // if returned coordinates are greater than 1, then the robot is too far from the human
-	else if(posX > 1 || posY > 1){
-		world_state = 5;
-	}
+// // odometry detects change in position
+// void odomCB(const kobuki_msgs::Odometry::ConstPtr& msg) {
+// 	posX = msg->pose.pose.position.x;
+// 	posY = msg->pose.pose.position.y;
+// 	posZ = msg->pose.pose.position.z;
+// 	if(posZ > 0.5){
+// 		world_state = 3;
+// 	} // if returned coordinates are less than -1, then the robot is too close to the human
+// 	else if (posX < -1 || posY < -1){
+// 		world_state = 2;
+// 	} // if returned coordinates are greater than 1, then the robot is too far from the human
+// 	else if(posX > 1 || posY > 1){
+// 		world_state = 5;
+// 	}
 
-}
+// }
 
 // human gets too close, runs away
 void scared(){
@@ -112,7 +112,7 @@ int main(int argc, char **argv) {
     ros::Subscriber follower = nh.subscribe("follower_velocity_smoother/smooth_cmd_vel", 10, &followerCB);
     ros::Subscriber bumper_sub = nh.subscribe("mobile_base/events/bumper", 10, &bumperCB);
 
-	ros::Subscriber odom = nh.subscribe("odom", 1, &odomCB);
+	//ros::Subscriber odom = nh.subscribe("odom", 1, &odomCB);
 
     // Contest count down timer
     ros::Rate loop_rate(10);
@@ -143,7 +143,8 @@ int main(int argc, char **argv) {
 		else if(world_state == 1){
 			sc.playWave(path_to_sounds+"r2scream.wav");
 			anger();
-			ros::Duration(2.0).sleep();
+			ROS_INFO("Bumper hit");
+			ROS_INFO("Anger");
 			sc.stopWave(path_to_sounds+"r2scream.wav");
 		} // human gets too close, scared
 		else if(world_state == 2){
