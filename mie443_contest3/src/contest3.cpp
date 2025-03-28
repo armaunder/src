@@ -18,6 +18,7 @@ uint8_t frontstate = bumper[kobuki_msgs::BumperEvent::CENTER];
 uint8_t rightstate = bumper[kobuki_msgs::BumperEvent::RIGHT];
 
 int world_state;
+float posX = 0.0, posY = 0.0, posZ = 0.0;
 
 void followerCB(const geometry_msgs::Twist msg) {
     follow_cmd = msg;
@@ -28,6 +29,22 @@ void bumperCB(const kobuki_msgs::BumperEvent::ConstPtr& msg) {
     if (bumper[0] == 1 || bumper[1] == 1 || bumper[2] == 1) {
         world_state = 1;
     }
+}
+// odometry detects change in z
+void odomCB(const kobuki_msgs::Odometry::ConstPtr& msg) {
+	posX = msg->pose.pose.position.x;
+	posY = msg->pose.pose.position.y;
+	posZ = msg->pose.pose.position.z;
+	if(posZ > 0.5){
+		world_state = 3;
+	} // if returned coordinates are less than -1, then the robot is too close to the human
+	else if (posX < -1 || posY < -1){
+		world_state = 2;
+	} // if returned coordinates are greater than 1, then the robot is too far from the human
+	else if(posX > 1 || posY > 1){
+		world_state = 5;
+	}
+
 }
 
 // human gets too close, runs away
@@ -87,6 +104,8 @@ int main(int argc, char **argv) {
     ros::Subscriber follower = nh.subscribe("follower_velocity_smoother/smooth_cmd_vel", 10, &followerCB);
     ros::Subscriber bumper_sub = nh.subscribe("mobile_base/events/bumper", 10, &bumperCB);
 
+	ros::Subscriber odom = nh.subscribe("odom", 1, &odomCB);
+
     // Contest count down timer
     ros::Rate loop_rate(10);
     std::chrono::time_point<std::chrono::system_clock> start = std::chrono::system_clock::now();
@@ -112,21 +131,25 @@ int main(int argc, char **argv) {
 		if(world_state == 0){
 			vel_pub.publish(follow_cmd);
 
-		}else if(world_state == 1){
+		}// bumper hit, anger
+		else if(world_state == 1){
 			sc.playWave(path_to_sounds+"r2scream.wav");
-			scared();
+			anger();
 			ros::Duration(2.0).sleep();
 			sc.stopWave(path_to_sounds+"r2scream.wav");
-		}
+		} // human gets too close, scared
 		else if(world_state == 2){
-			anger();
-		}
+			scared();
+		} // bot picked up, happy
 		else if(world_state == 3){
+			sc.playWave(path_to_sounds+"r2scream.wav");
 			happy();
-		}
+			ros::Duration(2.0).sleep();
+			sc.stopWave(path_to_sounds+"r2scream.wav");
+		} // finds human, surprised
 		else if(world_state == 4){
 			surprised();
-		}
+		} // loses human, sad
 		else if(world_state == 5){
 			sad();
 		}
