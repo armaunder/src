@@ -29,6 +29,13 @@ int world_state;
 
 void followerCB(const geometry_msgs::Twist msg) {
     follow_cmd = msg;
+
+	//check for loss of target
+	if (fabs(msg.linear.x) < 0.01 && fabs(msg.angular.z) < 0.01) {
+       ROS_WARN("Follower has likely lost the target.");
+       world_state = 5; // sad state
+   	}
+
 }
 
 void bumperCB(const kobuki_msgs::BumperEvent::ConstPtr& msg)
@@ -94,6 +101,10 @@ void anger(){
 void sad(){
 	vel.linear.x = 0.5;
 	vel.angular.z = 0.5;
+	vel_pub.publish(vel);
+	sleep(2.0);
+	vel.linear.x = 0;
+	vel.angular.z = 0;
 	vel_pub.publish(vel);
 }
 
@@ -181,7 +192,13 @@ int main(int argc, char **argv) {
 			surprised();
 		}
 		else if(world_state == 5){
+			sc.playWave(path_to_sounds+"r2scream.wav");
 			sad();
+			ROS_INFO("Cant find human");
+			ROS_INFO("Sad");
+			sc.stopWave(path_to_sounds+"r2scream.wav");
+			world_state = 0;
+		
 		}
 		secondsElapsed = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now()-start).count();
 		loop_rate.sleep();
