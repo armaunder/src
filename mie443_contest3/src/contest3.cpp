@@ -87,24 +87,38 @@ void anger(){
 	// sc.playWave(path_to_sounds+"r2scream.wav"); //change sound
 	//sleep(2.0);
     //sc.playWave(path_to_sounds + "sound.wav");
-	vel.linear.x = -2;
-	vel_pub.publish(vel);
-	vel.linear.x = 0;
-	vel.angular.z = 1;
+	vel.angular.z = 0;
+	vel.linear.x = -1;
 	vel_pub.publish(vel);
 	sleep(2.0);
+	vel.linear.x = 0;
+	vel.angular.z = 1;
+	int i = 0;
+	while (i < 8){
+		vel_pub.publish(vel);
+		//sleep(2.0);
+		i++;
+	}
+	//vel_pub.publish(vel);
+	//sleep(2.0);
 	vel.angular.x = 0;
 	vel_pub.publish(vel); 
 }
 
 // loses human, starts meandering
 void sad(){
-	vel.linear.x = 0.5;
-	vel.angular.z = 0.5;
-	vel_pub.publish(vel);
-	sleep(2.0);
-	vel.linear.x = 0;
-	vel.angular.z = 0;
+	vel.linear.x = 0.0;
+	for (int i = 0; i < 2; i++){
+		if (i%2 == 0){
+			vel.angular.z = 1;
+		}
+		else {
+			vel.angular.z = -1;
+		}
+		vel_pub.publish(vel);
+		sleep(2.0);
+	}
+	vel.angular.z = 0.0;
 	vel_pub.publish(vel);
 }
 
@@ -177,12 +191,11 @@ int main(int argc, char **argv) {
 			world_state = 0;
 		} // bot gets raised, happy
 		else if(world_state == 2){
-			sc.playWave(path_to_sounds+"r2scream.wav");
-			happy();
+			sc.playWave(path_to_sounds+"Yippee.wav");
 			ROS_INFO("Cliff detected");
 			ROS_INFO("Happy");
 			ros::Duration(2.0).sleep();
-			sc.stopWave(path_to_sounds+"r2scream.wav");
+			sc.stopWave(path_to_sounds+"Yippee.wav");
 			world_state = 0;
 		}
 		else if(world_state == 3){
@@ -192,11 +205,11 @@ int main(int argc, char **argv) {
 			surprised();
 		}
 		else if(world_state == 5){
-			sc.playWave(path_to_sounds+"r2scream.wav");
+			sc.playWave(path_to_sounds+"sadnesscry.wav");
 			sad();
 			ROS_INFO("Can't find human");
 			ROS_INFO("Sad");
-			sc.stopWave(path_to_sounds+"r2scream.wav");
+			sc.stopWave(path_to_sounds+"sadnesscry.wav");
 			world_state = 0;
 		
 		}
