@@ -185,6 +185,7 @@ int main(int argc, char **argv) {
 		}else if(world_state == 1){
 			sc.playWave(path_to_sounds+"r2scream.wav");
 			anger();
+			//hi
 			ROS_INFO("Bumper hit");
 			ROS_INFO("Anger");
 			sc.stopWave(path_to_sounds+"r2scream.wav");
