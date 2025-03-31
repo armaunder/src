@@ -194,7 +194,7 @@ int main(int argc, char **argv) {
 		else if(world_state == 5){
 			sc.playWave(path_to_sounds+"r2scream.wav");
 			sad();
-			ROS_INFO("Cant find human");
+			ROS_INFO("Can't find human");
 			ROS_INFO("Sad");
 			sc.stopWave(path_to_sounds+"r2scream.wav");
 			world_state = 0;
