@@ -99,13 +99,20 @@ void anger(){
 
 // loses human, starts meandering
 void sad(){
-	vel.linear.x = 0.5;
-	vel.angular.z = 0.5;
-	vel_pub.publish(vel);
-	sleep(2.0);
-	vel.linear.x = 0;
-	vel.angular.z = 0;
-	vel_pub.publish(vel);
+    vel.linear.x = 0.0;
+    for (int i = 0; i<2; i++){
+        if (i%2 == 0){
+            vel.angular.z = 1.0;
+        }
+        else {
+            vel.angular.z = -1.0;
+        }
+	    vel_pub.publish(vel);
+	    sleep(2.0);
+    }
+    vel.angular.z = 0.0;
+    vel_pub.publish(vel);
+    
 }
 
 //-------------------------------------------------------------
@@ -192,11 +199,10 @@ int main(int argc, char **argv) {
 			surprised();
 		}
 		else if(world_state == 5){
-			sc.playWave(path_to_sounds+"r2scream.wav");
-			sad();
-			ROS_INFO("Can't find human");
-			ROS_INFO("Sad");
-			sc.stopWave(path_to_sounds+"r2scream.wav");
+			sc.playWave(path_to_sounds+"sadnesscry.wav");
+			ROS_INFO("Sad: can't find human");
+            sad();
+			sc.stopWave(path_to_sounds+"sadnesscry.wav");
 			world_state = 0;
 		
 		}
