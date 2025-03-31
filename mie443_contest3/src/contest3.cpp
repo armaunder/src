@@ -3,12 +3,10 @@
 #include <imageTransporter.hpp>
 #include <chrono>
 #include <kobuki_msgs/BumperEvent.h>
-//#include <kobuki_msgs/Odometry.h>
-#include <geometry_msgs/Twist.h>
-#include <sound_play/SoundRequest.h>
-#include <sensor_msgs/Image.h>
+#include <kobuki_msgs/CliffEvent.h>
 
 using namespace std;
+#define N_BUMPER (3)
 
 // Global variables
 geometry_msgs::Twist follow_cmd;
@@ -21,45 +19,39 @@ uint8_t leftstate = bumper[kobuki_msgs::BumperEvent::LEFT];
 uint8_t frontstate = bumper[kobuki_msgs::BumperEvent::CENTER];
 uint8_t rightstate = bumper[kobuki_msgs::BumperEvent::RIGHT];
 
+//cliff sensors
+uint8_t cliff[3] = {kobuki_msgs::CliffEvent::FLOOR, kobuki_msgs::CliffEvent::FLOOR, kobuki_msgs::CliffEvent::FLOOR};
+
+
+
+
 int world_state;
-float posX = 0.0, posY = 0.0, posZ = 0.0;
 
 void followerCB(const geometry_msgs::Twist msg) {
     follow_cmd = msg;
 }
 
-void bumperCB(const kobuki_msgs::BumperEvent::ConstPtr& msg) {
+void bumperCB(const kobuki_msgs::BumperEvent::ConstPtr& msg)
+{
     bumper[msg->bumper] = msg->state;
-	leftstate = bumper[kobuki_msgs::BumperEvent::LEFT];
-	frontstate = bumper[kobuki_msgs::BumperEvent::CENTER];
-	rightstate = bumper[kobuki_msgs::BumperEvent::RIGHT];
+	// uint8_t leftstate = bumper[kobuki_msgs::BumperEvent::LEFT];
+	// uint8_t frontstate = bumper[kobuki_msgs::BumperEvent::CENTER];
+	// uint8_t rightstate = bumper[kobuki_msgs::BumperEvent::RIGHT];
 
-    // if (leftstate == kobuki_msgs::BumperEvent::PRESSED || frontstate == kobuki_msgs::BumperEvent::PRESSED || rightstate == kobuki_msgs::BumperEvent::PRESSED) {
-    //     world_state = 1;
-    // }
-	if (bumper[0] == 1 || bumper[1] == 1 || bumper[2] == 1) {
-		world_state = 1;
-	}
-	// if (leftstate == kobuki_msgs::BumperEvent::RELEASED && frontstate == kobuki_msgs::BumperEvent::RELEASED && rightstate == kobuki_msgs::BumperEvent::RELEASED) {
-	//     world_state = 0;
-	// }
+    if (leftstate == kobuki_msgs::BumperEvent::PRESSED || frontstate == kobuki_msgs::BumperEvent::PRESSED || rightstate == kobuki_msgs::BumperEvent::PRESSED) {
+        world_state = 1;
+    }
 }
-// // odometry detects change in position
-// void odomCB(const kobuki_msgs::Odometry::ConstPtr& msg) {
-// 	posX = msg->pose.pose.position.x;
-// 	posY = msg->pose.pose.position.y;
-// 	posZ = msg->pose.pose.position.z;
-// 	if(posZ > 0.5){
-// 		world_state = 3;
-// 	} // if returned coordinates are less than -1, then the robot is too close to the human
-// 	else if (posX < -1 || posY < -1){
-// 		world_state = 2;
-// 	} // if returned coordinates are greater than 1, then the robot is too far from the human
-// 	else if(posX > 1 || posY > 1){
-// 		world_state = 5;
-// 	}
 
-// }
+void cliffCB(const kobuki_msgs::CliffEvent::ConstPtr& msg)
+{
+	cliff[msg->sensor] = msg->state;
+
+	if (cliff[0] == kobuki_msgs::CliffEvent::CLIFF || cliff[1] == kobuki_msgs::CliffEvent::CLIFF || cliff[2] == kobuki_msgs::CliffEvent::CLIFF) {
+		world_state = 2;
+	}
+}
+
 
 // human gets too close, runs away
 void scared(){
@@ -87,13 +79,14 @@ void surprised(){
 void anger(){
 	// sc.playWave(path_to_sounds+"r2scream.wav"); //change sound
 	//sleep(2.0);
+    //sc.playWave(path_to_sounds + "sound.wav");
 	vel.linear.x = -2;
 	vel_pub.publish(vel);
 	vel.linear.x = 0;
 	vel.angular.z = 1;
 	vel_pub.publish(vel);
-	ros::Duration(2.0).sleep();
-	vel.angular.z = 0;
+	sleep(2.0);
+	vel.angular.x = 0;
 	vel_pub.publish(vel); 
 }
 
@@ -117,8 +110,7 @@ int main(int argc, char **argv) {
     // Subscribers
     ros::Subscriber follower = nh.subscribe("follower_velocity_smoother/smooth_cmd_vel", 10, &followerCB);
     ros::Subscriber bumper_sub = nh.subscribe("mobile_base/events/bumper", 10, &bumperCB);
-
-	//ros::Subscriber odom = nh.subscribe("odom", 1, &odomCB);
+	ros::Subscriber cliff_sub = nh.subscribe("mobile_base/events/cliff", 10, &cliffCB);
 
     // Contest count down timer
     ros::Rate loop_rate(10);
@@ -138,34 +130,56 @@ int main(int argc, char **argv) {
 
     sc.playWave(path_to_sounds + "sound.wav");
     ros::Duration(0.5).sleep();
-
+	//ros::Rate loop_rate(10);
     while(ros::ok() && secondsElapsed <= 480){		
 		ros::spinOnce();
+		
+		bool any_bumper_pressed=false;
+        for (uint32_t b_idx = 0; b_idx < N_BUMPER; ++b_idx) {
+        	any_bumper_pressed |= (bumper[b_idx] == kobuki_msgs::BumperEvent::PRESSED);
+        }
+
+		if (any_bumper_pressed){
+			world_state = 1;
+		}
+
+
+		bool any_cliff = false;
+        for (uint32_t c_idx = 0; c_idx < 3; ++c_idx) {
+			any_cliff |= (cliff[c_idx] == kobuki_msgs::CliffEvent::CLIFF);
+        }
+
+		if (any_cliff){
+			world_state = 2;
+		}
+
 
 		if(world_state == 0){
 			vel_pub.publish(follow_cmd);
 
-		}// bumper hit, anger
-		else if(world_state == 1){
+		}else if(world_state == 1){
 			sc.playWave(path_to_sounds+"r2scream.wav");
 			anger();
 			ROS_INFO("Bumper hit");
 			ROS_INFO("Anger");
 			sc.stopWave(path_to_sounds+"r2scream.wav");
-			world_state == 0;
-		} // human gets too close, scared
+			world_state = 0;
+		} // bot gets raised, happy
 		else if(world_state == 2){
-			scared();
-		} // bot picked up, happy
-		else if(world_state == 3){
 			sc.playWave(path_to_sounds+"r2scream.wav");
 			happy();
+			ROS_INFO("Cliff detected");
+			ROS_INFO("Happy");
 			ros::Duration(2.0).sleep();
 			sc.stopWave(path_to_sounds+"r2scream.wav");
-		} // finds human, surprised
+			world_state = 0;
+		}
+		else if(world_state == 3){
+			scared();
+		}
 		else if(world_state == 4){
 			surprised();
-		} // loses human, sad
+		}
 		else if(world_state == 5){
 			sad();
 		}
