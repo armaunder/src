@@ -16,6 +16,9 @@ string path_to_sounds; // ✅ Make sound path global
 ros::Publisher vel_pub; // ✅ Make publisher global
 
 uint8_t bumper[3] = {kobuki_msgs::BumperEvent::RELEASED, kobuki_msgs::BumperEvent::RELEASED, kobuki_msgs::BumperEvent::RELEASED};
+uint8_t leftstate = bumper[kobuki_msgs::BumperEvent::LEFT];
+uint8_t frontstate = bumper[kobuki_msgs::BumperEvent::CENTER];
+uint8_t rightstate = bumper[kobuki_msgs::BumperEvent::RIGHT];
 uint8_t cliff[N_CLIFF] = {kobuki_msgs::CliffEvent::FLOOR, kobuki_msgs::CliffEvent::FLOOR, kobuki_msgs::CliffEvent::FLOOR};
 
 int world_state;
@@ -44,8 +47,9 @@ void bumperCallback(const kobuki_msgs::BumperEvent::ConstPtr& msg)
    bumper[msg->bumper] = msg->state;
 
    if (leftstate == kobuki_msgs::BumperEvent::PRESSED || frontstate == kobuki_msgs::BumperEvent::PRESSED || rightstate == kobuki_msgs::BumperEvent::PRESSED) {
-       world_state = 1;
-   }
+    world_state = 1;
+    }
+
 }
 
 void anger(){
@@ -155,10 +159,10 @@ int main(int argc, char **argv) {
        for (uint32_t b_idx = 0; b_idx < N_BUMPER; ++b_idx) {
            any_bumper_pressed |= (bumper[b_idx] == kobuki_msgs::BumperEvent::PRESSED);
        }
-
        if (any_bumper_pressed){
            world_state = 1;
        }
+
        if(world_state == 0){
            vel_pub.publish(follow_cmd);
        } else if(world_state == 1){
