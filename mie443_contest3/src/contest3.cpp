@@ -48,6 +48,7 @@ void bumperCB(const kobuki_msgs::BumperEvent::ConstPtr& msg)
     if (leftstate == kobuki_msgs::BumperEvent::PRESSED || frontstate == kobuki_msgs::BumperEvent::PRESSED || rightstate == kobuki_msgs::BumperEvent::PRESSED) {
         world_state = 1;
     }
+
 }
 
 void cliffCB(const kobuki_msgs::CliffEvent::ConstPtr& msg)
@@ -65,7 +66,6 @@ void scared(){
 	vel.linear.x = -2;
 	vel.angular.z = 1;
 	vel_pub.publish(vel);
-
 }
 
 // gets picked up, wheels spin fast while it is in the air
@@ -155,17 +155,37 @@ int main(int argc, char **argv) {
 
     sc.playWave(path_to_sounds + "sound.wav");
     ros::Duration(0.5).sleep();
+	bool timer_started = false;
 	//ros::Rate loop_rate(10);
     while(ros::ok() && secondsElapsed <= 480){		
 		ros::spinOnce();
 		
+		ros::Time last_bumper_press_time;
+		
+
 		bool any_bumper_pressed=false;
         for (uint32_t b_idx = 0; b_idx < N_BUMPER; ++b_idx) {
         	any_bumper_pressed |= (bumper[b_idx] == kobuki_msgs::BumperEvent::PRESSED);
+			
         }
 
 		if (any_bumper_pressed){
-			world_state = 1;
+			ROS_INFO("Pressed");
+			ros::Time current_time = ros::Time::now();
+
+			if (!timer_started){
+				last_bumper_press_time = current_time;
+				timer_started = true;
+			}
+
+			if ((current_time - last_bumper_press_time).toSec() > 1.0){
+				world_state = 1;
+
+			} else {
+				world_state = 4;
+				timer_started = false;
+			}
+			
 		}
 
 
@@ -203,7 +223,13 @@ int main(int argc, char **argv) {
 			scared();
 		}
 		else if(world_state == 4){
+			sc.playWave(path_to_sounds+"chewwie.wav");
+			ROS_INFO("double double");
+			ROS_INFO("surprised");
+			ros::Duration(2.0).sleep();
+			sc.stopWave(path_to_sounds+"chewwie.wav");
 			surprised();
+			world_state = 0;
 		}
 		else if(world_state == 5){
 			sc.playWave(path_to_sounds+"sadnesscry.wav");
