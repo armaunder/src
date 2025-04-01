@@ -158,7 +158,6 @@ int main(int argc, char **argv) {
 			if (!timer_started){
 				last_bumper_press_time = secondsElapsed;
 				timer_started = true;
-				world_state = 1;
 			}
 			else if ((secondsElapsed - last_bumper_press_time) <= 1){
 				world_state = 4;
@@ -184,10 +183,10 @@ int main(int argc, char **argv) {
 			vel_pub.publish(follow_cmd);
 
 		}else if(world_state == 1){
-			sc.playWave(path_to_sounds+"r2d2_scared.wav");
+			sc.playWave(path_to_sounds+"scrm.wav");
 			ROS_INFO("Scared");
 			scared();
-			sc.stopWave(path_to_sounds+"r2d2_scared.wav");
+			sc.stopWave(path_to_sounds+"scrm.wav");
 		} // bot gets raised, happy
 		else if(world_state == 2){
 			sc.playWave(path_to_sounds+"Yippee.wav");
