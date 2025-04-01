@@ -10,9 +10,9 @@ using namespace std;
 
 // Global variables
 geometry_msgs::Twist follow_cmd;
-geometry_msgs::Twist vel; // ✅ Ensure vel is global
-string path_to_sounds; // ✅ Make sound path global
-ros::Publisher vel_pub; // ✅ Make publisher global
+geometry_msgs::Twist vel;
+string path_to_sounds; 
+ros::Publisher vel_pub; 
 
 uint8_t bumper[3] = {kobuki_msgs::BumperEvent::RELEASED, kobuki_msgs::BumperEvent::RELEASED, kobuki_msgs::BumperEvent::RELEASED};
 uint8_t leftstate = bumper[kobuki_msgs::BumperEvent::LEFT];
@@ -22,9 +22,6 @@ uint8_t rightstate = bumper[kobuki_msgs::BumperEvent::RIGHT];
 //cliff sensors
 uint8_t cliff[3] = {kobuki_msgs::CliffEvent::FLOOR, kobuki_msgs::CliffEvent::FLOOR, kobuki_msgs::CliffEvent::FLOOR};
 
-
-
-
 int world_state;
 
 void followerCB(const geometry_msgs::Twist msg) {
@@ -33,22 +30,13 @@ void followerCB(const geometry_msgs::Twist msg) {
 	//check for loss of target
 	if (fabs(msg.linear.x) < 0.01 && fabs(msg.angular.z) < 0.01) {
        ROS_WARN("Follower has likely lost the target.");
-       world_state = 5; // sad state
+       world_state = 3; // sad state
    	}
-
 }
 
 void bumperCB(const kobuki_msgs::BumperEvent::ConstPtr& msg)
 {
     bumper[msg->bumper] = msg->state;
-	// uint8_t leftstate = bumper[kobuki_msgs::BumperEvent::LEFT];
-	// uint8_t frontstate = bumper[kobuki_msgs::BumperEvent::CENTER];
-	// uint8_t rightstate = bumper[kobuki_msgs::BumperEvent::RIGHT];
-
-    if (leftstate == kobuki_msgs::BumperEvent::PRESSED || frontstate == kobuki_msgs::BumperEvent::PRESSED || rightstate == kobuki_msgs::BumperEvent::PRESSED) {
-        world_state = 1;
-    }
-
 }
 
 void cliffCB(const kobuki_msgs::CliffEvent::ConstPtr& msg)
@@ -60,49 +48,49 @@ void cliffCB(const kobuki_msgs::CliffEvent::ConstPtr& msg)
 	}
 }
 
-
 // human gets too close, runs away
-void scared(){
-	vel.linear.x = -2;
-	vel.angular.z = 1;
+void angry(){
+	vel.linear.x = 0.5;
+	vel.angular.z = 0;
 	vel_pub.publish(vel);
-}
-
-// gets picked up, wheels spin fast while it is in the air
-void happy(){
-	vel.linear.x = 2;
-	vel_pub.publish(vel);
+	sleep(1.0);
 	vel.linear.x = 0;
-	vel_pub.publish(vel); 
+	vel.angular.z = 0;
+	vel_pub.publish(vel);
+	sleep(1.0);
+	vel.linear.x = 1;
+	vel.angular.z = 0;
+	vel_pub.publish(vel);
+	sleep(1.0);
+	vel.linear.x = 0;
+	vel.angular.z = 0;
+	vel_pub.publish(vel);
+	sleep(1.0);
 }
 
-// finds human, sound of shock
-void surprised(){
-	// sc.playWave(path_to_sounds+"r2scream.wav"); //change sound
-	// sleep(2.0); 
-}
+// // gets picked up, wheels spin fast while it is in the air
+// void happy(){
+// 	vel.linear.x = 2;
+// 	vel_pub.publish(vel);
+// 	vel.linear.x = 0;
+// 	vel_pub.publish(vel); 
+// }
 
 // hits bumper back up and start spinning
-void anger(){
-	// sc.playWave(path_to_sounds+"r2scream.wav"); //change sound
-	//sleep(2.0);
-    //sc.playWave(path_to_sounds + "sound.wav");
+void scared(){
 	vel.angular.z = 0;
 	vel.linear.x = -1;
 	vel_pub.publish(vel);
 	sleep(2.0);
 	vel.linear.x = 0;
 	vel.angular.z = 1;
-	int i = 0;
-	while (i < 8){
-		vel_pub.publish(vel);
-		//sleep(2.0);
-		i++;
-	}
-	//vel_pub.publish(vel);
-	//sleep(2.0);
-	vel.angular.x = 0;
+	vel_pub.publish(vel);
+	sleep(2.0);
+	vel.angular.z = -1;
 	vel_pub.publish(vel); 
+	sleep(2.0);
+	vel.angular.z = 0;
+	vel_pub.publish(vel);
 }
 
 // loses human, starts meandering
@@ -156,36 +144,31 @@ int main(int argc, char **argv) {
     sc.playWave(path_to_sounds + "sound.wav");
     ros::Duration(0.5).sleep();
 	bool timer_started = false;
-	//ros::Rate loop_rate(10);
+	ros::Rate loop_rate(10);
+	uint64_t last_bumper_press_time = 0;
     while(ros::ok() && secondsElapsed <= 480){		
 		ros::spinOnce();
-		
-		ros::Time last_bumper_press_time;
-		
 
 		bool any_bumper_pressed=false;
         for (uint32_t b_idx = 0; b_idx < N_BUMPER; ++b_idx) {
         	any_bumper_pressed |= (bumper[b_idx] == kobuki_msgs::BumperEvent::PRESSED);
-			
         }
-
 		if (any_bumper_pressed){
-			ROS_INFO("Pressed");
-			ros::Time current_time = ros::Time::now();
+			ROS_INFO("Bumper Pressed");
 
 			if (!timer_started){
-				last_bumper_press_time = current_time;
+				last_bumper_press_time = secondsElapsed;
 				timer_started = true;
-			}
-
-			if ((current_time - last_bumper_press_time).toSec() > 1.0){
 				world_state = 1;
-
-			} else {
+			}
+			else if ((secondsElapsed - last_bumper_press_time) <= 1){
 				world_state = 4;
 				timer_started = false;
+			} 
+			else {
+				last_bumper_press_time = secondsElapsed;
+				world_state = 1;
 			}
-			
 		}
 
 
@@ -197,19 +180,15 @@ int main(int argc, char **argv) {
 		if (any_cliff){
 			world_state = 2;
 		}
-
-
+		
 		if(world_state == 0){
 			vel_pub.publish(follow_cmd);
 
 		}else if(world_state == 1){
-			sc.playWave(path_to_sounds+"r2scream.wav");
-			anger();
-			//hi
-			ROS_INFO("Bumper hit");
-			ROS_INFO("Anger");
-			sc.stopWave(path_to_sounds+"r2scream.wav");
-			world_state = 0;
+			sc.playWave(path_to_sounds+"r2d2_scared.wav");
+			ROS_INFO("Scared");
+			scared();
+			sc.stopWave(path_to_sounds+"r2d2_scared.wav");
 		} // bot gets raised, happy
 		else if(world_state == 2){
 			sc.playWave(path_to_sounds+"Yippee.wav");
@@ -217,29 +196,21 @@ int main(int argc, char **argv) {
 			ROS_INFO("Happy");
 			ros::Duration(2.0).sleep();
 			sc.stopWave(path_to_sounds+"Yippee.wav");
-			world_state = 0;
 		}
 		else if(world_state == 3){
-			scared();
+			sc.playWave(path_to_sounds+"sadnesscry.wav");
+			ROS_INFO("Sad");
+			sad();
+			sc.stopWave(path_to_sounds+"sadnesscry.wav");
 		}
 		else if(world_state == 4){
 			sc.playWave(path_to_sounds+"chewwie.wav");
-			ROS_INFO("double double");
-			ROS_INFO("surprised");
+			ROS_INFO("Angry");
 			ros::Duration(2.0).sleep();
 			sc.stopWave(path_to_sounds+"chewwie.wav");
-			surprised();
-			world_state = 0;
+			angry();
 		}
-		else if(world_state == 5){
-			sc.playWave(path_to_sounds+"sadnesscry.wav");
-			sad();
-			ROS_INFO("Can't find human");
-			ROS_INFO("Sad");
-			sc.stopWave(path_to_sounds+"sadnesscry.wav");
-			world_state = 0;
-		
-		}
+		world_state = 0;
 		secondsElapsed = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now()-start).count();
 		loop_rate.sleep();
 	}
