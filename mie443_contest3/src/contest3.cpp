@@ -144,7 +144,6 @@ int main(int argc, char **argv) {
     sc.playWave(path_to_sounds + "sound.wav");
     ros::Duration(0.5).sleep();
 	bool timer_started = false;
-	ros::Rate loop_rate(10);
 	uint64_t last_bumper_press_time = 0;
     while(ros::ok() && secondsElapsed <= 480){		
 		ros::spinOnce();
